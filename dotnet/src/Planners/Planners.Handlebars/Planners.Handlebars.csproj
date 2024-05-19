@@ -38,5 +38,6 @@
 
   <ItemGroup>
     <PackageReference Include="Handlebars.Net" />
+    <PackageReference Include="HandlebarsDotNet" />
   </ItemGroup>
 </Project>
