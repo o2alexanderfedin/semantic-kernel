@@ -1,0 +1,631 @@
+.
+├── DEV_SETUP.md
+├── Makefile
+├── README.md
+├── log.txt
+├── mypy.ini
+├── pip
+│   └── README.md
+├── poetry.lock
+├── pyproject.toml
+├── samples
+│   ├── concepts
+│   │   ├── README.md
+│   │   ├── auto_function_calling
+│   │   │   ├── azure_python_code_interpreter_function_calling.py
+│   │   │   └── chat_gpt_api_function_calling.py
+│   │   ├── chat_completion
+│   │   │   ├── azure_chat_gpt_api.py
+│   │   │   ├── chat_gpt_api.py
+│   │   │   ├── chat_streaming.py
+│   │   │   └── openai_logit_bias.py
+│   │   ├── filtering
+│   │   │   ├── auto_function_invoke_filters.py
+│   │   │   ├── function_invocation_filters.py
+│   │   │   ├── function_invocation_filters_stream.py
+│   │   │   ├── prompt_filters.py
+│   │   │   └── resources
+│   │   │       └── chat
+│   │   │           └── chat.yaml
+│   │   ├── functions
+│   │   │   └── kernel_arguments.py
+│   │   ├── grounding
+│   │   │   └── grounded.py
+│   │   ├── logging
+│   │   │   └── setup_logging.py
+│   │   ├── memory
+│   │   │   ├── azure_cognitive_search_memory.py
+│   │   │   ├── google_palm_chat_with_memory.py
+│   │   │   └── memory.py
+│   │   ├── on_your_data
+│   │   │   ├── azure_chat_gpt_with_data_api.py
+│   │   │   ├── azure_chat_gpt_with_data_api_function_calling.py
+│   │   │   └── azure_chat_gpt_with_data_api_vector_search.py
+│   │   ├── planners
+│   │   │   ├── azure_openai_function_calling_stepwise_planner.py
+│   │   │   ├── openai_function_calling_stepwise_planner.py
+│   │   │   └── sequential_planner.py
+│   │   ├── plugins
+│   │   │   ├── azure_key_vault_settings.py
+│   │   │   ├── azure_python_code_interpreter.py
+│   │   │   ├── google_palm_chat_with_plugin.py
+│   │   │   ├── openai_function_calling_with_custom_plugin.py
+│   │   │   ├── openai_plugin_azure_key_vault.py
+│   │   │   ├── openai_plugin_klarna.py
+│   │   │   ├── openapi
+│   │   │   │   ├── README.md
+│   │   │   │   ├── openapi.yaml
+│   │   │   │   ├── openapi_client.py
+│   │   │   │   └── openapi_server.py
+│   │   │   └── plugins_from_dir.py
+│   │   ├── prompt_templates
+│   │   │   ├── azure_chat_gpt_api_handlebars.py
+│   │   │   ├── azure_chat_gpt_api_jinja2.py
+│   │   │   ├── configuring_prompts.py
+│   │   │   ├── load_yaml_prompt.py
+│   │   │   └── template_language.py
+│   │   ├── rag
+│   │   │   ├── rag_with_text_memory_plugin.py
+│   │   │   └── self-critique_rag.py
+│   │   ├── resources
+│   │   │   ├── __init__.py
+│   │   │   ├── email_plugin
+│   │   │   │   └── native_function.py
+│   │   │   ├── open_ai_plugins
+│   │   │   │   ├── akv-openai.json
+│   │   │   │   └── akv-openapi.yaml
+│   │   │   ├── sample_plugins
+│   │   │   │   ├── generate_story.yaml
+│   │   │   │   └── parrot.yaml
+│   │   │   └── utils.py
+│   │   ├── search
+│   │   │   ├── bing_plugin_examples.py
+│   │   │   ├── bing_search_plugin.py
+│   │   │   └── google_search_plugin.py
+│   │   └── text_generation
+│   │       └── google_palm_text_completion.py
+│   ├── demos
+│   │   └── booking_restaurant
+│   │       ├── README.md
+│   │       ├── booking_sample_settings.py
+│   │       ├── bookings_plugin
+│   │       │   ├── __init__.py
+│   │       │   └── bookings_plugin.py
+│   │       └── restaurant_booking.py
+│   ├── getting_started
+│   │   ├── 00-getting-started.ipynb
+│   │   ├── 01-basic-loading-the-kernel.ipynb
+│   │   ├── 02-running-prompts-from-file.ipynb
+│   │   ├── 03-prompt-function-inline.ipynb
+│   │   ├── 04-kernel-arguments-chat.ipynb
+│   │   ├── 05-using-the-planner.ipynb
+│   │   ├── 06-memory-and-embeddings.ipynb
+│   │   ├── 07-hugging-face-for-plugins.ipynb
+│   │   ├── 08-native-function-inline.ipynb
+│   │   ├── 09-groundedness-checking.ipynb
+│   │   ├── 10-multiple-results-per-prompt.ipynb
+│   │   ├── 11-streaming-completions.ipynb
+│   │   ├── services.py
+│   │   └── third_party
+│   │       └── weaviate-persistent-memory.ipynb
+│   └── learn_resources
+│       ├── README.md
+│       ├── ai_services.py
+│       ├── configuring_prompts.py
+│       ├── creating_functions.py
+│       ├── evaluate_with_prompt_flow.py
+│       ├── functions_within_prompts.py
+│       ├── improved_evaluate_with_prompt_flow.py
+│       ├── planner.py
+│       ├── plugin.py
+│       ├── plugins
+│       │   ├── MathPlugin
+│       │   │   └── native_function.py
+│       │   ├── OrchestratorPlugin
+│       │   │   └── GetIntent
+│       │   │       ├── config.json
+│       │   │       └── skprompt.txt
+│       │   ├── WriterPlugin
+│       │   │   └── ShortPoem
+│       │   │       ├── config.json
+│       │   │       └── skprompt.txt
+│       │   ├── prompt_flow_helpers
+│       │   │   └── perform_math
+│       │   │       ├── data.jsonl
+│       │   │       ├── flow.dag.yaml
+│       │   │       ├── math_planner.py
+│       │   │       └── plugins
+│       │   │           └── MathPlugin
+│       │   │               └── Math.py
+│       │   └── prompts
+│       │       └── chat
+│       │           ├── config.json
+│       │           └── skprompt.txt
+│       ├── prompts.py
+│       ├── serializing_prompts.py
+│       ├── service_configurator.py
+│       ├── templates.py
+│       └── using_the_kernel.py
+├── semantic_kernel
+│   ├── __init__.py
+│   ├── connectors
+│   │   ├── __init__.py
+│   │   ├── ai
+│   │   │   ├── __init__.py
+│   │   │   ├── chat_completion_client_base.py
+│   │   │   ├── embeddings
+│   │   │   │   └── embedding_generator_base.py
+│   │   │   ├── function_call_behavior.py
+│   │   │   ├── google_palm
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── gp_prompt_execution_settings.py
+│   │   │   │   ├── services
+│   │   │   │   │   ├── gp_chat_completion.py
+│   │   │   │   │   ├── gp_text_completion.py
+│   │   │   │   │   └── gp_text_embedding.py
+│   │   │   │   └── settings
+│   │   │   │       └── google_palm_settings.py
+│   │   │   ├── hugging_face
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── hf_prompt_execution_settings.py
+│   │   │   │   └── services
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── hf_text_completion.py
+│   │   │   │       └── hf_text_embedding.py
+│   │   │   ├── ollama
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── ollama_prompt_execution_settings.py
+│   │   │   │   ├── services
+│   │   │   │   │   ├── ollama_chat_completion.py
+│   │   │   │   │   ├── ollama_text_completion.py
+│   │   │   │   │   └── ollama_text_embedding.py
+│   │   │   │   └── utils.py
+│   │   │   ├── open_ai
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── const.py
+│   │   │   │   ├── exceptions
+│   │   │   │   │   └── content_filter_ai_exception.py
+│   │   │   │   ├── prompt_execution_settings
+│   │   │   │   │   ├── azure_chat_prompt_execution_settings.py
+│   │   │   │   │   └── open_ai_prompt_execution_settings.py
+│   │   │   │   ├── services
+│   │   │   │   │   ├── azure_chat_completion.py
+│   │   │   │   │   ├── azure_config_base.py
+│   │   │   │   │   ├── azure_text_completion.py
+│   │   │   │   │   ├── azure_text_embedding.py
+│   │   │   │   │   ├── open_ai_chat_completion.py
+│   │   │   │   │   ├── open_ai_chat_completion_base.py
+│   │   │   │   │   ├── open_ai_config_base.py
+│   │   │   │   │   ├── open_ai_handler.py
+│   │   │   │   │   ├── open_ai_model_types.py
+│   │   │   │   │   ├── open_ai_text_completion.py
+│   │   │   │   │   ├── open_ai_text_completion_base.py
+│   │   │   │   │   ├── open_ai_text_embedding.py
+│   │   │   │   │   ├── open_ai_text_embedding_base.py
+│   │   │   │   │   └── utils.py
+│   │   │   │   └── settings
+│   │   │   │       ├── azure_open_ai_settings.py
+│   │   │   │       └── open_ai_settings.py
+│   │   │   ├── prompt_execution_settings.py
+│   │   │   └── text_completion_client_base.py
+│   │   ├── memory
+│   │   │   ├── __init__.py
+│   │   │   ├── astradb
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── astra_client.py
+│   │   │   │   ├── astradb_memory_store.py
+│   │   │   │   ├── astradb_settings.py
+│   │   │   │   └── utils.py
+│   │   │   ├── azure_cognitive_search
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── azure_ai_search_settings.py
+│   │   │   │   ├── azure_cognitive_search_memory_store.py
+│   │   │   │   └── utils.py
+│   │   │   ├── azure_cosmosdb
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── azure_cosmos_db_memory_store.py
+│   │   │   │   ├── azure_cosmos_db_store_api.py
+│   │   │   │   ├── azure_cosmosdb_settings.py
+│   │   │   │   ├── cosmosdb_utils.py
+│   │   │   │   └── mongo_vcore_store_api.py
+│   │   │   ├── azure_cosmosdb_no_sql
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── azure_cosmosdb_no_sql_memory_store.py
+│   │   │   ├── chroma
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── chroma_memory_store.py
+│   │   │   │   └── utils.py
+│   │   │   ├── memory_settings_base.py
+│   │   │   ├── milvus
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── milvus_memory_store.py
+│   │   │   ├── mongodb_atlas
+│   │   │   │   ├── README.md
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── mongodb_atlas_memory_store.py
+│   │   │   │   ├── mongodb_atlas_settings.py
+│   │   │   │   └── utils.py
+│   │   │   ├── pinecone
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── pinecone_memory_store.py
+│   │   │   │   ├── pinecone_settings.py
+│   │   │   │   └── utils.py
+│   │   │   ├── postgres
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── postgres_memory_store.py
+│   │   │   │   └── postgres_settings.py
+│   │   │   ├── qdrant
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── qdrant_memory_store.py
+│   │   │   ├── redis
+│   │   │   │   ├── README.md
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── redis_memory_store.py
+│   │   │   │   ├── redis_settings.py
+│   │   │   │   └── utils.py
+│   │   │   ├── usearch
+│   │   │   │   ├── __init__.py
+│   │   │   │   └── usearch_memory_store.py
+│   │   │   └── weaviate
+│   │   │       ├── __init__.py
+│   │   │       ├── weaviate_memory_store.py
+│   │   │       └── weaviate_settings.py
+│   │   ├── openai_plugin
+│   │   │   ├── __init__.py
+│   │   │   ├── openai_authentication_config.py
+│   │   │   ├── openai_function_execution_parameters.py
+│   │   │   └── openai_utils.py
+│   │   ├── openapi_plugin
+│   │   │   ├── __init__.py
+│   │   │   ├── openapi_function_execution_parameters.py
+│   │   │   └── openapi_manager.py
+│   │   ├── search_engine
+│   │   │   ├── __init__.py
+│   │   │   ├── bing_connector.py
+│   │   │   ├── bing_connector_settings.py
+│   │   │   ├── connector.py
+│   │   │   └── google_connector.py
+│   │   ├── telemetry.py
+│   │   └── utils
+│   │       ├── __init__.py
+│   │       └── document_loader.py
+│   ├── const.py
+│   ├── contents
+│   │   ├── __init__.py
+│   │   ├── author_role.py
+│   │   ├── chat_history.py
+│   │   ├── chat_message_content.py
+│   │   ├── const.py
+│   │   ├── finish_reason.py
+│   │   ├── function_call_content.py
+│   │   ├── function_result_content.py
+│   │   ├── kernel_content.py
+│   │   ├── streaming_chat_message_content.py
+│   │   ├── streaming_content_mixin.py
+│   │   ├── streaming_text_content.py
+│   │   ├── text_content.py
+│   │   └── types.py
+│   ├── core_plugins
+│   │   ├── __init__.py
+│   │   ├── conversation_summary_plugin.py
+│   │   ├── http_plugin.py
+│   │   ├── math_plugin.py
+│   │   ├── sessions_python_tool
+│   │   │   ├── README.md
+│   │   │   ├── __init__.py
+│   │   │   ├── sessions_python_plugin.py
+│   │   │   ├── sessions_python_settings.py
+│   │   │   └── sessions_remote_file_metadata.py
+│   │   ├── text_memory_plugin.py
+│   │   ├── text_plugin.py
+│   │   ├── time_plugin.py
+│   │   ├── wait_plugin.py
+│   │   └── web_search_engine_plugin.py
+│   ├── exceptions
+│   │   ├── __init__.py
+│   │   ├── content_exceptions.py
+│   │   ├── function_exceptions.py
+│   │   ├── kernel_exceptions.py
+│   │   ├── memory_connector_exceptions.py
+│   │   ├── planner_exceptions.py
+│   │   ├── service_exceptions.py
+│   │   └── template_engine_exceptions.py
+│   ├── filters
+│   │   ├── auto_function_invocation
+│   │   │   └── auto_function_invocation_context.py
+│   │   ├── filter_context_base.py
+│   │   ├── filter_types.py
+│   │   ├── functions
+│   │   │   └── function_invocation_context.py
+│   │   └── prompts
+│   │       └── prompt_render_context.py
+│   ├── functions
+│   │   ├── __init__.py
+│   │   ├── function_result.py
+│   │   ├── kernel_arguments.py
+│   │   ├── kernel_function.py
+│   │   ├── kernel_function_decorator.py
+│   │   ├── kernel_function_from_method.py
+│   │   ├── kernel_function_from_prompt.py
+│   │   ├── kernel_function_metadata.py
+│   │   ├── kernel_parameter_metadata.py
+│   │   ├── kernel_plugin.py
+│   │   ├── prompt_rendering_result.py
+│   │   └── types.py
+│   ├── kernel.py
+│   ├── kernel_extensions
+│   │   └── kernel_filters_extension.py
+│   ├── kernel_pydantic.py
+│   ├── memory
+│   │   ├── __init__.py
+│   │   ├── memory_query_result.py
+│   │   ├── memory_record.py
+│   │   ├── memory_store_base.py
+│   │   ├── null_memory.py
+│   │   ├── semantic_text_memory.py
+│   │   ├── semantic_text_memory_base.py
+│   │   └── volatile_memory_store.py
+│   ├── planners
+│   │   ├── __init__.py
+│   │   ├── function_calling_stepwise_planner
+│   │   │   ├── __init__.py
+│   │   │   ├── function_calling_stepwise_planner.py
+│   │   │   ├── function_calling_stepwise_planner_options.py
+│   │   │   ├── function_calling_stepwise_planner_result.py
+│   │   │   ├── generate_plan.yaml
+│   │   │   └── step_prompt.txt
+│   │   ├── plan.py
+│   │   ├── planner_extensions.py
+│   │   ├── planner_options.py
+│   │   └── sequential_planner
+│   │       ├── Plugins
+│   │       │   └── SequentialPlanning
+│   │       │       ├── config.json
+│   │       │       └── skprompt.txt
+│   │       ├── __init__.py
+│   │       ├── sequential_planner.py
+│   │       ├── sequential_planner_config.py
+│   │       ├── sequential_planner_extensions.py
+│   │       └── sequential_planner_parser.py
+│   ├── prompt_template
+│   │   ├── __init__.py
+│   │   ├── const.py
+│   │   ├── handlebars_prompt_template.py
+│   │   ├── input_variable.py
+│   │   ├── jinja2_prompt_template.py
+│   │   ├── kernel_prompt_template.py
+│   │   ├── prompt_template_base.py
+│   │   ├── prompt_template_config.py
+│   │   └── utils
+│   │       ├── __init__.py
+│   │       ├── handlebars_system_helpers.py
+│   │       ├── jinja2_system_helpers.py
+│   │       └── template_function_helpers.py
+│   ├── py.typed
+│   ├── reliability
+│   │   ├── pass_through_without_retry.py
+│   │   └── retry_mechanism_base.py
+│   ├── schema
+│   │   ├── kernel_json_schema.py
+│   │   └── kernel_json_schema_builder.py
+│   ├── services
+│   │   ├── __init__.py
+│   │   ├── ai_service_client_base.py
+│   │   └── ai_service_selector.py
+│   ├── template_engine
+│   │   ├── README.md
+│   │   ├── blocks
+│   │   │   ├── block.py
+│   │   │   ├── block_types.py
+│   │   │   ├── code_block.py
+│   │   │   ├── function_id_block.py
+│   │   │   ├── named_arg_block.py
+│   │   │   ├── symbols.py
+│   │   │   ├── text_block.py
+│   │   │   ├── val_block.py
+│   │   │   └── var_block.py
+│   │   ├── code_tokenizer.py
+│   │   ├── protocols
+│   │   │   ├── code_renderer.py
+│   │   │   └── text_renderer.py
+│   │   └── template_tokenizer.py
+│   ├── text
+│   │   ├── __init__.py
+│   │   ├── function_extension.py
+│   │   └── text_chunker.py
+│   └── utils
+│       ├── chat.py
+│       ├── experimental_decorator.py
+│       ├── logging.py
+│       ├── naming.py
+│       ├── null_logger.py
+│       └── validation.py
+├── tests
+│   ├── __init__.py
+│   ├── assets
+│   │   ├── test_native_plugins
+│   │   │   ├── TestNativePlugin
+│   │   │   │   └── custom_class.py
+│   │   │   ├── TestNativePluginArgs
+│   │   │   │   └── class_args.py
+│   │   │   └── TestNativePluginNoClass
+│   │   │       └── native_function.py
+│   │   └── test_plugins
+│   │       ├── TestFunctionBadYaml
+│   │       │   └── bad.yaml
+│   │       ├── TestFunctionYaml
+│   │       │   ├── empty.yaml
+│   │       │   └── test_function.yaml
+│   │       ├── TestFunctionYamlHandlebars
+│   │       │   └── test_function.yaml
+│   │       ├── TestFunctionYamlJinja2
+│   │       │   └── test_function.yaml
+│   │       ├── TestMixedPlugin
+│   │       │   ├── TestFunction
+│   │       │   │   ├── config.json
+│   │       │   │   └── skprompt.txt
+│   │       │   ├── native_function.py
+│   │       │   └── test_function.yaml
+│   │       ├── TestNoFunction
+│   │       │   └── something_else.txt
+│   │       ├── TestOpenAIPlugin
+│   │       │   └── akv-openai.json
+│   │       ├── TestOpenAPIPlugin
+│   │       │   └── akv-openapi.yaml
+│   │       └── TestPlugin
+│   │           ├── TestFunction
+│   │           │   ├── config.json
+│   │           │   └── skprompt.txt
+│   │           ├── TestFunctionConfigOnly
+│   │           │   └── config.json
+│   │           ├── TestFunctionHandlebars
+│   │           │   ├── config.json
+│   │           │   └── skprompt.txt
+│   │           └── TestFunctionPromptOnly
+│   │               └── skprompt.txt
+│   ├── conftest.py
+│   ├── integration
+│   │   ├── completions
+│   │   │   ├── conftest.py
+│   │   │   ├── test_azure_oai_chat_service.py
+│   │   │   ├── test_azure_oai_chat_service_extensions.py
+│   │   │   ├── test_azure_oai_text_service.py
+│   │   │   ├── test_conversation_summary_plugin.py
+│   │   │   ├── test_gp_chat_service.py
+│   │   │   ├── test_gp_text_service.py
+│   │   │   ├── test_hf_local_text_completions.py
+│   │   │   ├── test_oai_chat_service.py
+│   │   │   ├── test_oai_text_service.py
+│   │   │   └── test_utils.py
+│   │   ├── connectors
+│   │   │   └── memory
+│   │   │       ├── conftest.py
+│   │   │       ├── test_astradb.py
+│   │   │       ├── test_azure_cognitive_search.py
+│   │   │       ├── test_azure_cosmosdb_memory_store.py
+│   │   │       ├── test_azure_cosmosdb_no_sql_memory_store.py
+│   │   │       ├── test_chroma.py
+│   │   │       ├── test_milvus.py
+│   │   │       ├── test_mongodb_atlas.py
+│   │   │       ├── test_pinecone.py
+│   │   │       ├── test_postgres.py
+│   │   │       ├── test_qdrant_memory_store.py
+│   │   │       ├── test_redis.py
+│   │   │       ├── test_usearch.py
+│   │   │       └── test_weaviate_memory_store.py
+│   │   ├── embeddings
+│   │   │   ├── test_azure_oai_embedding_service.py
+│   │   │   ├── test_gp_embedding_service.py
+│   │   │   ├── test_hf_embedding_service.py
+│   │   │   └── test_oai_embedding_service.py
+│   │   ├── fakes
+│   │   │   ├── email_plugin_fake.py
+│   │   │   ├── fun_plugin_fake.py
+│   │   │   ├── summarize_plugin_fake.py
+│   │   │   └── writer_plugin_fake.py
+│   │   └── planning
+│   │       ├── function_calling_stepwise_planner
+│   │       │   └── test_int_function_calling_stepwise_planner.py
+│   │       └── sequential_planner
+│   │           ├── test_sequential_plan_parser.py
+│   │           └── test_sequential_planner.py
+│   └── unit
+│       ├── connectors
+│       │   ├── google_palm
+│       │   │   └── services
+│       │   │       ├── test_palm_chat_completion.py
+│       │   │       ├── test_palm_text_completion.py
+│       │   │       └── test_palm_text_embedding.py
+│       │   ├── ollama
+│       │   │   ├── services
+│       │   │   │   ├── test_ollama_chat_completion.py
+│       │   │   │   ├── test_ollama_text_completion.py
+│       │   │   │   └── test_ollama_text_embedding.py
+│       │   │   └── utils.py
+│       │   ├── open_ai
+│       │   │   ├── services
+│       │   │   │   ├── test_azure_chat_completion.py
+│       │   │   │   ├── test_azure_text_completion.py
+│       │   │   │   ├── test_azure_text_embedding.py
+│       │   │   │   ├── test_open_ai_chat_completion_base.py
+│       │   │   │   ├── test_openai_chat_completion.py
+│       │   │   │   ├── test_openai_text_completion.py
+│       │   │   │   └── test_openai_text_embedding.py
+│       │   │   └── test_openai_request_settings.py
+│       │   ├── openapi
+│       │   │   ├── invalid_openapi.yaml
+│       │   │   ├── openapi.yaml
+│       │   │   └── test_sk_openapi.py
+│       │   ├── test_ai_request_settings.py
+│       │   └── test_function_call_behavior.py
+│       ├── contents
+│       │   ├── conftest.py
+│       │   ├── test_chat_history.py
+│       │   ├── test_chat_message_content.py
+│       │   ├── test_function_call.py
+│       │   └── test_streaming_chat_message_content.py
+│       ├── core_plugins
+│       │   ├── test_http_plugin.py
+│       │   ├── test_math_plugin.py
+│       │   ├── test_sessions_python_plugin.py
+│       │   ├── test_text_plugin.py
+│       │   ├── test_time_plugin.py
+│       │   └── test_wait_plugin.py
+│       ├── functions
+│       │   ├── test_kernel_arguments.py
+│       │   ├── test_kernel_experimental_decorator.py
+│       │   ├── test_kernel_function_decorators.py
+│       │   ├── test_kernel_function_from_method.py
+│       │   ├── test_kernel_function_from_prompt.py
+│       │   ├── test_kernel_function_metadata.py
+│       │   ├── test_kernel_parameter_metadata.py
+│       │   └── test_kernel_plugins.py
+│       ├── kernel
+│       │   ├── test_kernel.py
+│       │   ├── test_kernel_filter_extension.py
+│       │   └── test_register_functions.py
+│       ├── memory
+│       │   ├── test_azure_cognitive_search_memory_store.py
+│       │   └── test_volatile_memory_store.py
+│       ├── planners
+│       │   ├── function_calling_stepwise_planner
+│       │   │   ├── test_function_calling_stepwise_planner.py
+│       │   │   └── test_function_calling_stepwise_planner_options.py
+│       │   ├── sequential_planner
+│       │   │   ├── __init__.py
+│       │   │   ├── test_sequential_planner.py
+│       │   │   ├── test_sequential_planner_extensions.py
+│       │   │   └── test_sequential_planner_parser.py
+│       │   ├── test_plan_creation.py
+│       │   └── test_plan_execution.py
+│       ├── prompt_template
+│       │   ├── semantic-kernel-tests.txt
+│       │   ├── test_handlebars_prompt_template.py
+│       │   ├── test_handlebars_prompt_template_e2e.py
+│       │   ├── test_jinja2_prompt_template.py
+│       │   ├── test_jinja2_prompt_template_e2e.py
+│       │   ├── test_kernel_prompt_template.py
+│       │   ├── test_prompt_template_e2e.py
+│       │   └── test_prompt_templates.py
+│       ├── schema
+│       │   └── test_schema_builder.py
+│       ├── services
+│       │   └── test_ai_service_client_base.py
+│       ├── template_engine
+│       │   ├── blocks
+│       │   │   ├── test_block.py
+│       │   │   ├── test_code_block.py
+│       │   │   ├── test_function_id_block.py
+│       │   │   ├── test_named_arg_block.py
+│       │   │   ├── test_text_block.py
+│       │   │   ├── test_val_block.py
+│       │   │   └── test_var_block.py
+│       │   ├── test_code_tokenizer.py
+│       │   └── test_template_tokenizer.py
+│       ├── test_serialization.py
+│       └── text
+│           ├── test_function_extension.py
+│           └── test_text_chunker.py
+└── tree.txt
+
+156 directories, 473 files
