@@ -82,30 +82,40 @@ public sealed class FunctionResult
     /// <exception cref="InvalidCastException">Thrown when it's not possible to cast result value to <typeparamref name="T"/>.</exception>
     public T? GetValue<T>()
     {
-        if (this.Value is null)
+        switch (this.Value)
         {
-            return default;
-        }
+            case null:
+                return default;
 
-        if (this.Value is T typedResult)
-        {
-            return typedResult;
-        }
+            case T value:
+                return value;
 
-        if (this.Value is KernelContent content)
-        {
-            if (typeof(T) == typeof(string))
-            {
-                return (T?)(object?)content.ToString();
-            }
-
-            if (content.InnerContent is T innerContent)
-            {
+            case KernelContent { InnerContent: T innerContent }:
                 return innerContent;
-            }
+
+            case KernelContent content when typeof(T) == typeof(string):
+                return (T?)(object?)content.ToString();
+
+            case KernelContent content:
+                return ConvertTo(content.InnerContent);
+
+            default:
+                return ConvertTo(this.Value);
         }
 
-        throw new InvalidCastException($"Cannot cast {this.Value.GetType()} to {typeof(T)}");
+        static T ConvertTo<TSrc>(TSrc src)
+            where TSrc: notnull
+        {
+            try
+            {
+                var result = Convert.ChangeType(src, typeof(T));
+                return (T)result;
+            }
+            catch (Exception error)
+            {
+                throw new InvalidCastException($"Cannot cast {src.GetType()} to {typeof(T)}", error);
+            }
+        }
     }
 
     /// <inheritdoc/>
