@@ -12,7 +12,7 @@ from semantic_kernel.kernel_pydantic import KernelBaseModel
 class AIServiceClientBase(KernelBaseModel, ABC):
     """Base class for all AI Services.
 
-    Has a ai_model_id and service_id, any other fields have to be defined by the subclasses.
+    Has an ai_model_id and service_id, any other fields have to be defined by the subclasses.
 
     The ai_model_id can refer to a specific model, like 'gpt-35-turbo' for OpenAI,
     or can just be a string that is used to identify the model in the service.
@@ -28,11 +28,13 @@ class AIServiceClientBase(KernelBaseModel, ABC):
         if not self.service_id:
             self.service_id = self.ai_model_id
 
-    def get_prompt_execution_settings_class(self) -> "PromptExecutionSettings":
+    # Override this in subclass to return the proper prompt execution type the
+    # service is expecting.
+    def get_prompt_execution_settings_class(self) -> type[PromptExecutionSettings]:
         """Get the request settings class."""
-        return PromptExecutionSettings  # pragma: no cover
+        return PromptExecutionSettings
 
-    def instantiate_prompt_execution_settings(self, **kwargs) -> "PromptExecutionSettings":
+    def instantiate_prompt_execution_settings(self, **kwargs) -> PromptExecutionSettings:
         """Create a request settings object.
 
         All arguments are passed to the constructor of the request settings object.
@@ -41,4 +43,8 @@ class AIServiceClientBase(KernelBaseModel, ABC):
 
     def get_prompt_execution_settings_from_settings(self, settings: PromptExecutionSettings) -> PromptExecutionSettings:
         """Get the request settings from a settings object."""
-        return self.get_prompt_execution_settings_class().from_prompt_execution_settings(settings)
+        prompt_execution_settings_type = self.get_prompt_execution_settings_class()
+        if isinstance(settings, prompt_execution_settings_type):
+            return settings
+
+        return prompt_execution_settings_type.from_prompt_execution_settings(settings)

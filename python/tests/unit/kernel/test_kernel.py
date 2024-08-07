@@ -1,31 +1,38 @@
 # Copyright (c) Microsoft. All rights reserved.
 
 import os
-import sys
 from typing import Union
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
 
 from semantic_kernel import Kernel
 from semantic_kernel.connectors.ai.chat_completion_client_base import ChatCompletionClientBase
+from semantic_kernel.connectors.ai.function_choice_behavior import FunctionChoiceBehavior
 from semantic_kernel.connectors.ai.prompt_execution_settings import PromptExecutionSettings
 from semantic_kernel.connectors.openai_plugin.openai_function_execution_parameters import (
     OpenAIFunctionExecutionParameters,
 )
 from semantic_kernel.const import METADATA_EXCEPTION_KEY
+from semantic_kernel.contents import ChatMessageContent
+from semantic_kernel.contents.chat_history import ChatHistory
+from semantic_kernel.contents.function_call_content import FunctionCallContent
 from semantic_kernel.exceptions import (
+    FunctionCallInvalidArgumentsException,
     KernelFunctionAlreadyExistsError,
     KernelServiceNotFoundError,
-    ServiceInvalidTypeError,
 )
 from semantic_kernel.exceptions.kernel_exceptions import KernelFunctionNotFoundError, KernelPluginNotFoundError
 from semantic_kernel.exceptions.template_engine_exceptions import TemplateSyntaxError
 from semantic_kernel.functions.function_result import FunctionResult
 from semantic_kernel.functions.kernel_arguments import KernelArguments
+from semantic_kernel.functions.kernel_function import KernelFunction
 from semantic_kernel.functions.kernel_function_decorator import kernel_function
+from semantic_kernel.functions.kernel_function_metadata import KernelFunctionMetadata
 from semantic_kernel.functions.kernel_plugin import KernelPlugin
+from semantic_kernel.prompt_template.kernel_prompt_template import KernelPromptTemplate
+from semantic_kernel.prompt_template.prompt_template_config import PromptTemplateConfig
 from semantic_kernel.services.ai_service_client_base import AIServiceClientBase
 from semantic_kernel.services.ai_service_selector import AIServiceSelector
 
@@ -69,6 +76,18 @@ def test_kernel_init_with_services_list(service: AIServiceClientBase):
 def test_kernel_init_with_plugins():
     plugins = {"plugin": KernelPlugin(name="plugin")}
     kernel = Kernel(plugins=plugins)
+    assert kernel.plugins is not None
+
+
+def test_kernel_init_with_kernel_plugin_instance():
+    plugin = KernelPlugin(name="plugin")
+    kernel = Kernel(plugins=plugin)
+    assert kernel.plugins is not None
+
+
+def test_kernel_init_with_kernel_plugin_list():
+    plugin = [KernelPlugin(name="plugin")]
+    kernel = Kernel(plugins=plugin)
     assert kernel.plugins is not None
 
 
@@ -162,6 +181,93 @@ async def test_invoke_prompt_no_prompt_error(kernel: Kernel):
         )
 
 
+@pytest.mark.asyncio
+async def test_invoke_function_call(kernel: Kernel):
+    tool_call_mock = MagicMock(spec=FunctionCallContent)
+    tool_call_mock.split_name_dict.return_value = {"arg_name": "arg_value"}
+    tool_call_mock.to_kernel_arguments.return_value = {"arg_name": "arg_value"}
+    tool_call_mock.name = "test-function"
+    tool_call_mock.function_name = "function"
+    tool_call_mock.plugin_name = "test"
+    tool_call_mock.arguments = {"arg_name": "arg_value"}
+    tool_call_mock.ai_model_id = None
+    tool_call_mock.metadata = {}
+    tool_call_mock.index = 0
+    tool_call_mock.parse_arguments.return_value = {"arg_name": "arg_value"}
+    tool_call_mock.id = "test_id"
+    result_mock = MagicMock(spec=ChatMessageContent)
+    result_mock.items = [tool_call_mock]
+    chat_history_mock = MagicMock(spec=ChatHistory)
+
+    func_mock = AsyncMock(spec=KernelFunction)
+    func_meta = KernelFunctionMetadata(name="function", is_prompt=False)
+    func_mock.metadata = func_meta
+    func_mock.name = "function"
+    func_result = FunctionResult(value="Function result", function=func_meta)
+    func_mock.invoke = MagicMock(return_value=func_result)
+
+    arguments = KernelArguments()
+
+    with patch("semantic_kernel.kernel.logger", autospec=True):
+        await kernel.invoke_function_call(
+            tool_call_mock,
+            chat_history_mock,
+            arguments,
+            1,
+            0,
+            FunctionChoiceBehavior.Auto(),
+        )
+
+
+@pytest.mark.asyncio
+async def test_invoke_function_call_with_continuation_on_malformed_arguments(kernel: Kernel):
+    tool_call_mock = MagicMock(spec=FunctionCallContent)
+    tool_call_mock.to_kernel_arguments.side_effect = FunctionCallInvalidArgumentsException("Malformed arguments")
+    tool_call_mock.name = "test-function"
+    tool_call_mock.function_name = "function"
+    tool_call_mock.plugin_name = "test"
+    tool_call_mock.arguments = {"arg_name": "arg_value"}
+    tool_call_mock.ai_model_id = None
+    tool_call_mock.metadata = {}
+    tool_call_mock.index = 0
+    tool_call_mock.to_kernel_arguments.return_value = {"arg_name": "arg_value"}
+    tool_call_mock.id = "test_id"
+    result_mock = MagicMock(spec=ChatMessageContent)
+    result_mock.items = [tool_call_mock]
+    chat_history_mock = MagicMock(spec=ChatHistory)
+
+    func_mock = MagicMock(spec=KernelFunction)
+    func_meta = KernelFunctionMetadata(name="function", is_prompt=False)
+    func_mock.metadata = func_meta
+    func_mock.name = "function"
+    func_result = FunctionResult(value="Function result", function=func_meta)
+    func_mock.invoke = AsyncMock(return_value=func_result)
+    arguments = KernelArguments()
+
+    with patch("semantic_kernel.kernel.logger", autospec=True) as logger_mock:
+        await kernel.invoke_function_call(
+            tool_call_mock,
+            chat_history_mock,
+            arguments,
+            1,
+            0,
+            FunctionChoiceBehavior.Auto(),
+        )
+
+    logger_mock.info.assert_any_call(
+        "Received invalid arguments for function test-function: Malformed arguments. Trying tool call again."
+    )
+
+    add_message_calls = chat_history_mock.add_message.call_args_list
+    assert any(
+        call[1]["message"].items[0].result
+        == "The tool call arguments are malformed. Arguments must be in JSON format. Please try again."  # noqa: E501
+        and call[1]["message"].items[0].id == "test_id"
+        and call[1]["message"].items[0].name == "test-function"
+        for call in add_message_calls
+    ), "Expected call to add_message not found with the expected message content and metadata."
+
+
 # endregion
 # region Plugins
 
@@ -229,6 +335,39 @@ def test_add_function_not_provided(kernel: Kernel):
         kernel.add_function(function_name="TestFunction", plugin_name="TestPlugin")
 
 
+def test_add_function_from_prompt_different_values(kernel: Kernel):
+    template = """
+    Write a short story about two Corgis on an adventure.
+    The story must be:
+    - G rated
+    - Have a positive message
+    - No sexism, racism or other bias/bigotry
+    - Be exactly {{$paragraph_count}} paragraphs long
+    - Be written in this language: {{$language}}
+    - The two names of the corgis are {{GenerateNames.generate_names}}
+    """
+    prompt = "test"
+
+    kernel.add_function(
+        prompt=prompt,
+        function_name="TestFunction",
+        plugin_name="TestPlugin",
+        description="Write a short story.",
+        template_format="handlebars",
+        prompt_template_config=PromptTemplateConfig(
+            template=template,
+        ),
+        execution_settings=PromptExecutionSettings(
+            extension_data={"max_tokens": 500, "temperature": 0.5, "top_p": 0.5}
+        ),
+    )
+    func = kernel.get_function("TestPlugin", "TestFunction")
+    assert func.name == "TestFunction"
+    assert func.description == "Write a short story."
+    assert isinstance(func.prompt_template, KernelPromptTemplate)
+    assert len(func.parameters) == 2
+
+
 def test_add_functions(kernel: Kernel):
     @kernel_function(name="func1")
     def func1(arg1: str) -> str:
@@ -279,7 +418,7 @@ async def test_add_plugin_from_openai(mock_parse_openai_manifest, kernel: Kernel
             enable_dynamic_payload=True,
         ),
     )
-    plugin = kernel.plugins["TestOpenAIPlugin"]
+    plugin = kernel.get_plugin(plugin_name="TestOpenAIPlugin")
     assert plugin is not None
     assert plugin.name == "TestOpenAIPlugin"
     assert plugin.functions.get("GetSecret") is not None
@@ -295,7 +434,7 @@ def test_import_plugin_from_openapi(kernel: Kernel):
         plugin_name="TestOpenAPIPlugin",
         openapi_document_path=openapi_spec_file,
     )
-    plugin = kernel.plugins["TestOpenAPIPlugin"]
+    plugin = kernel.get_plugin(plugin_name="TestOpenAPIPlugin")
     assert plugin is not None
     assert plugin.name == "TestOpenAPIPlugin"
     assert plugin.functions.get("GetSecret") is not None
@@ -429,7 +568,6 @@ def test_get_service_with_multiple_types(kernel_with_service: Kernel):
     assert service_get == kernel_with_service.services["service"]
 
 
-@pytest.mark.skipif(sys.version_info < (3, 10), reason="This is valid syntax only in python 3.10+.")
 def test_get_service_with_multiple_types_union(kernel_with_service: Kernel):
     """This is valid syntax only in python 3.10+. It is skipped for older versions."""
     service_get = kernel_with_service.get_service("service", type=Union[AIServiceClientBase, ChatCompletionClientBase])
@@ -437,7 +575,7 @@ def test_get_service_with_multiple_types_union(kernel_with_service: Kernel):
 
 
 def test_get_service_with_type_not_found(kernel_with_service: Kernel):
-    with pytest.raises(ServiceInvalidTypeError):
+    with pytest.raises(KernelServiceNotFoundError):
         kernel_with_service.get_service("service", type=ChatCompletionClientBase)
 
 
@@ -452,7 +590,7 @@ def test_instantiate_prompt_execution_settings_through_kernel(kernel_with_servic
 
 
 # endregion
-# experimental class decorator
+# region experimental class decorator
 
 
 def test_experimental_class_has_decorator_and_flag(experimental_plugin_class):

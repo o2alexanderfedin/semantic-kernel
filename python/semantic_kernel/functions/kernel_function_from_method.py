@@ -1,5 +1,6 @@
 # Copyright (c) Microsoft. All rights reserved.
 
+import inspect
 import logging
 from collections.abc import Callable
 from inspect import isasyncgen, isasyncgenfunction, isawaitable, iscoroutinefunction, isgenerator, isgeneratorfunction
@@ -20,8 +21,6 @@ logger: logging.Logger = logging.getLogger(__name__)
 class KernelFunctionFromMethod(KernelFunction):
     """Semantic Kernel Function from a method."""
 
-    # some attributes are now properties, still listed here for documentation purposes
-
     method: Callable[..., Any]
     stream_method: Callable[..., Any] | None = None
 
@@ -34,8 +33,7 @@ class KernelFunctionFromMethod(KernelFunction):
         return_parameter: KernelParameterMetadata | None = None,
         additional_metadata: dict[str, Any] | None = None,
     ) -> None:
-        """
-        Initializes a new instance of the KernelFunctionFromMethod class
+        """Initializes a new instance of the KernelFunctionFromMethod class.
 
         Args:
             method (Callable[..., Any]): The method to be called
@@ -58,11 +56,12 @@ class KernelFunctionFromMethod(KernelFunction):
         if parameters is None:
             parameters = [KernelParameterMetadata(**param) for param in method.__kernel_function_parameters__]  # type: ignore
         if return_parameter is None:
-            return_param = KernelParameterMetadata(
+            return_parameter = KernelParameterMetadata(
                 name="return",
                 description=method.__kernel_function_return_description__,  # type: ignore
                 default_value=None,
                 type_=method.__kernel_function_return_type__,  # type: ignore
+                type_object=method.__kernel_function_return_type_object__,  # type: ignore
                 is_required=method.__kernel_function_return_required__,  # type: ignore
             )
 
@@ -71,7 +70,7 @@ class KernelFunctionFromMethod(KernelFunction):
                 name=function_name,
                 description=description,
                 parameters=parameters,
-                return_parameter=return_param,
+                return_parameter=return_parameter,
                 is_prompt=False,
                 is_asynchronous=isasyncgenfunction(method) or iscoroutinefunction(method),
                 plugin_name=plugin_name,
@@ -87,7 +86,9 @@ class KernelFunctionFromMethod(KernelFunction):
             "stream_method": (
                 stream_method
                 if stream_method is not None
-                else method if isasyncgenfunction(method) or isgeneratorfunction(method) else None
+                else method
+                if isasyncgenfunction(method) or isgeneratorfunction(method)
+                else None
             ),
         }
 
@@ -140,7 +141,12 @@ class KernelFunctionFromMethod(KernelFunction):
                 continue
             if param.name in context.arguments:
                 value: Any = context.arguments[param.name]
-                if param.type_ and "," not in param.type_ and param.type_object:
+                if (
+                    param.type_
+                    and "," not in param.type_
+                    and param.type_object
+                    and param.type_object is not inspect._empty
+                ):
                     if hasattr(param.type_object, "model_validate"):
                         try:
                             value = param.type_object.model_validate(value)
@@ -156,7 +162,8 @@ class KernelFunctionFromMethod(KernelFunction):
                                 value = param.type_object(value)
                         except Exception as exc:
                             raise FunctionExecutionException(
-                                f"Parameter {param.name} is expected to be parsed to {param.type_object} but is not."
+                                f"Parameter {param.name} is expected to be parsed to "
+                                f"{param.type_object} but is not."
                             ) from exc
                 function_arguments[param.name] = value
                 continue

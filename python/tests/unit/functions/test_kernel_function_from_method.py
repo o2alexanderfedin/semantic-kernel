@@ -11,6 +11,7 @@ from semantic_kernel.functions.kernel_arguments import KernelArguments
 from semantic_kernel.functions.kernel_function import KernelFunction
 from semantic_kernel.functions.kernel_function_decorator import kernel_function
 from semantic_kernel.functions.kernel_function_from_method import KernelFunctionFromMethod
+from semantic_kernel.functions.kernel_parameter_metadata import KernelParameterMetadata
 from semantic_kernel.kernel import Kernel
 from semantic_kernel.kernel_pydantic import KernelBaseModel
 
@@ -86,6 +87,7 @@ def test_init_native_function_from_kernel_function_decorator():
     assert native_function.parameters[0].default_value == "test_default_value"
     assert native_function.parameters[0].type_ == "str"
     assert native_function.parameters[0].is_required is False
+    assert type(native_function.return_parameter) is KernelParameterMetadata
 
 
 def test_init_native_function_from_kernel_function_decorator_defaults():
@@ -309,6 +311,18 @@ def test_function_from_lambda():
 
 
 @pytest.mark.asyncio
+async def test_function_invoke_return_list_type(kernel: Kernel):
+    @kernel_function(name="list_func")
+    def test_list_func() -> list[str]:
+        return ["test1", "test2"]
+
+    func = KernelFunction.from_method(test_list_func, "test")
+
+    result = await kernel.invoke(function=func)
+    assert str(result) == "test1,test2"
+
+
+@pytest.mark.asyncio
 async def test_function_invocation_filters(kernel: Kernel):
     func = KernelFunctionFromMethod(method=kernel_function(lambda input: input**2, name="square"), plugin_name="math")
     kernel.add_function(plugin_name="math", function=func)
@@ -411,3 +425,27 @@ async def test_function_invocation_filters_streaming(kernel: Kernel):
         "func2",
         "overridden_func",
     ]
+
+
+@pytest.mark.asyncio
+async def test_default_handling(kernel: Kernel):
+    @kernel_function
+    def func_default(input: str = "test"):
+        return input
+
+    func = kernel.add_function(plugin_name="test", function_name="func_default", function=func_default)
+
+    res = await kernel.invoke(func)
+    assert str(res) == "test"
+
+
+@pytest.mark.asyncio
+async def test_default_handling_2(kernel: Kernel):
+    @kernel_function
+    def func_default(base: str, input: str = "test"):
+        return input
+
+    func = kernel.add_function(plugin_name="test", function_name="func_default", function=func_default)
+
+    res = await kernel.invoke(func, base="base")
+    assert str(res) == "test"

@@ -14,7 +14,7 @@ async def example1(kernel: Kernel, search_plugin_name: str):
     print("======== Bing and Google Search Plugins ========")
 
     question = "What's the largest building in the world?"
-    function = kernel.plugins[search_plugin_name]["search"]
+    function = kernel.get_function(plugin_name=search_plugin_name, function_name="search")
     result = await kernel.invoke(function, query=question)
 
     print(question)
@@ -65,7 +65,7 @@ async def example2(kernel: Kernel, service_id: str):
     oracle = kernel.add_function(
         function_name="oracle",
         plugin_name="OraclePlugin",
-        template=prompt,
+        prompt=prompt,
         execution_settings=OpenAIChatPromptExecutionSettings(
             service_id=service_id, max_tokens=150, temperature=0, top_p=1
         ),
@@ -97,7 +97,7 @@ async def example2(kernel: Kernel, service_id: str):
 async def main():
     kernel = Kernel()
 
-    model = "gpt-3.5-turbo-1106"
+    model = "gpt-3.5-turbo"
     service_id = model
 
     kernel.add_service(

@@ -2,18 +2,16 @@
 
 import warnings
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import pytest
 
-from semantic_kernel.contents.chat_history import ChatHistory
-from semantic_kernel.contents.streaming_text_content import StreamingTextContent
-from semantic_kernel.filters.functions.function_invocation_context import FunctionInvocationContext
-from semantic_kernel.functions.function_result import FunctionResult
-from semantic_kernel.functions.kernel_function import KernelFunction
-from semantic_kernel.functions.kernel_function_decorator import kernel_function
-from semantic_kernel.functions.kernel_function_metadata import KernelFunctionMetadata
-from semantic_kernel.kernel import Kernel
-from semantic_kernel.services.ai_service_client_base import AIServiceClientBase
+if TYPE_CHECKING:
+    from semantic_kernel.contents.chat_history import ChatHistory
+    from semantic_kernel.filters.functions.function_invocation_context import FunctionInvocationContext
+    from semantic_kernel.functions.kernel_function import KernelFunction
+    from semantic_kernel.kernel import Kernel
+    from semantic_kernel.services.ai_service_client_base import AIServiceClientBase
 
 
 @pytest.fixture(scope="function")
@@ -59,6 +57,8 @@ def not_decorated_native_function() -> Callable:
 
 @pytest.fixture(scope="session")
 def decorated_native_function() -> Callable:
+    from semantic_kernel.functions.kernel_function_decorator import kernel_function
+
     @kernel_function(name="getLightStatus")
     def decorated_native_function(arg1: str) -> str:
         return "test"
@@ -68,6 +68,8 @@ def decorated_native_function() -> Callable:
 
 @pytest.fixture(scope="session")
 def custom_plugin_class():
+    from semantic_kernel.functions.kernel_function_decorator import kernel_function
+
     class CustomPlugin:
         @kernel_function(name="getLightStatus")
         def decorated_native_function(self) -> str:
@@ -92,7 +94,10 @@ def experimental_plugin_class():
 
 @pytest.fixture(scope="session")
 def create_mock_function() -> Callable:
+    from semantic_kernel.contents.streaming_text_content import StreamingTextContent
+    from semantic_kernel.functions.function_result import FunctionResult
     from semantic_kernel.functions.kernel_function import KernelFunction
+    from semantic_kernel.functions.kernel_function_metadata import KernelFunctionMetadata
 
     async def stream_func(*args, **kwargs):
         yield [StreamingTextContent(choice_index=0, text="test", metadata={})]
@@ -124,15 +129,15 @@ def create_mock_function() -> Callable:
                 self.call_count += 1
                 context.result = FunctionResult(function=kernel_function_metadata, value=value, metadata={})
 
-        mock_function = CustomKernelFunction(metadata=kernel_function_metadata)
-
-        return mock_function
+        return CustomKernelFunction(metadata=kernel_function_metadata)
 
     return create_mock_function
 
 
 @pytest.fixture(scope="function")
-def chat_history():
+def chat_history() -> "ChatHistory":
+    from semantic_kernel.contents.chat_history import ChatHistory
+
     return ChatHistory()
 
 
@@ -148,12 +153,12 @@ def enable_debug_mode():
     3. If you want a trace of a particular functions calls, just add `ss()` as the first
         line of the function.
 
-    NOTE:
+    Note:
     ----
         It's completely fine to leave `autouse=True` in the fixture. It doesn't affect
         the tests unless you use `pr` or `ss` in any test.
 
-    NOTE:
+    Note:
     ----
         When you use `ss` or `pr` in a test, pylance or mypy will complain. This is
         because they don't know that we're adding these functions to the builtins. The
@@ -245,20 +250,15 @@ def openai_unit_test_env(monkeypatch, exclude_list, override_env_param_dict):
 
 
 @pytest.fixture()
-def google_palm_unit_test_env(monkeypatch, exclude_list, override_env_param_dict):
-    """Fixture to set environment variables for Google Palm."""
+def mistralai_unit_test_env(monkeypatch, exclude_list, override_env_param_dict):
+    """Fixture to set environment variables for MistralAISettings."""
     if exclude_list is None:
         exclude_list = []
 
     if override_env_param_dict is None:
         override_env_param_dict = {}
 
-    env_vars = {
-        "GOOGLE_PALM_API_KEY": "test_api_key",
-        "OPENAI_CHAT_MODEL_ID": "test_chat_model_id",
-        "OPENAI_TEXT_MODEL_ID": "test_text_model_id",
-        "OPENAI_EMBEDDING_MODEL_ID": "test_embedding_model_id",
-    }
+    env_vars = {"MISTRALAI_CHAT_MODEL_ID": "test_chat_model_id", "MISTRALAI_API_KEY": "test_api_key"}
 
     env_vars.update(override_env_param_dict)
 
@@ -281,7 +281,7 @@ def aca_python_sessions_unit_test_env(monkeypatch, exclude_list, override_env_pa
         override_env_param_dict = {}
 
     env_vars = {
-        "ACA_POOL_MANAGEMENT_ENDPOINT": "https://test.endpoint/python/excute/",
+        "ACA_POOL_MANAGEMENT_ENDPOINT": "https://test.endpoint/",
     }
 
     env_vars.update(override_env_param_dict)
@@ -308,6 +308,56 @@ def azure_ai_search_unit_test_env(monkeypatch, exclude_list, override_env_param_
         "AZURE_AI_SEARCH_API_KEY": "test-api-key",
         "AZURE_AI_SEARCH_ENDPOINT": "https://test-endpoint.com",
         "AZURE_AI_SEARCH_INDEX_NAME": "test-index-name",
+    }
+
+    env_vars.update(override_env_param_dict)
+
+    for key, value in env_vars.items():
+        if key not in exclude_list:
+            monkeypatch.setenv(key, value)
+        else:
+            monkeypatch.delenv(key, raising=False)
+
+    return env_vars
+
+
+@pytest.fixture()
+def bing_unit_test_env(monkeypatch, exclude_list, override_env_param_dict):
+    """Fixture to set environment variables for BingConnector."""
+    if exclude_list is None:
+        exclude_list = []
+
+    if override_env_param_dict is None:
+        override_env_param_dict = {}
+
+    env_vars = {
+        "BING_API_KEY": "test_api_key",
+        "BING_CUSTOM_CONFIG": "test_org_id",
+    }
+
+    env_vars.update(override_env_param_dict)
+
+    for key, value in env_vars.items():
+        if key not in exclude_list:
+            monkeypatch.setenv(key, value)
+        else:
+            monkeypatch.delenv(key, raising=False)
+
+    return env_vars
+
+
+@pytest.fixture()
+def google_search_unit_test_env(monkeypatch, exclude_list, override_env_param_dict):
+    """Fixture to set environment variables for the Google Search Connector."""
+    if exclude_list is None:
+        exclude_list = []
+
+    if override_env_param_dict is None:
+        override_env_param_dict = {}
+
+    env_vars = {
+        "GOOGLE_SEARCH_API_KEY": "test_api_key",
+        "GOOGLE_SEARCH_ENGINE_ID": "test_id",
     }
 
     env_vars.update(override_env_param_dict)
