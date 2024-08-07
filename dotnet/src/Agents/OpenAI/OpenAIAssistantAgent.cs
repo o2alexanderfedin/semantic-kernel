@@ -18,8 +18,13 @@ namespace Microsoft.SemanticKernel.Agents.OpenAI;
 /// <summary>
 /// A <see cref="KernelAgent"/> specialization based on Open AI Assistant / GPT.
 /// </summary>
-public sealed partial class OpenAIAssistantAgent : KernelAgent
+public sealed class OpenAIAssistantAgent : KernelAgent
 {
+    /// <summary>
+    /// Metadata key that identifies code-interpreter content.
+    /// </summary>
+    public const string CodeInterpreterMetadataKey = "code";
+
     private readonly Assistant _assistant;
     private readonly AssistantsClient _client;
     private readonly OpenAIAssistantConfiguration _config;
@@ -240,13 +245,19 @@ public sealed partial class OpenAIAssistantAgent : KernelAgent
     /// <param name="threadId">The thread identifier</param>
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> to monitor for cancellation requests. The default is <see cref="CancellationToken.None"/>.</param>
     /// <returns>Asynchronous enumeration of messages.</returns>
-    public IAsyncEnumerable<ChatMessageContent> InvokeAsync(
+    public async IAsyncEnumerable<ChatMessageContent> InvokeAsync(
         string threadId,
-        CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
         this.ThrowIfDeleted();
 
-        return AssistantThreadActions.InvokeAsync(this, this._client, threadId, this._config.Polling, this.Logger, cancellationToken);
+        await foreach ((bool isVisible, ChatMessageContent message) in AssistantThreadActions.InvokeAsync(this, this._client, threadId, this._config.Polling, this.Logger, cancellationToken).ConfigureAwait(false))
+        {
+            if (isVisible)
+            {
+                yield return message;
+            }
+        }
     }
 
     /// <inheritdoc/>
